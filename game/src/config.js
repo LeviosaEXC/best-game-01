@@ -31,12 +31,16 @@ export const PLAYER = {
   pickupRadius: 90,
 };
 
-/** Enemy kinds. hp and speed scale with the wave; score is the base kill value. */
+/** Enemy kinds. hp and speed scale with the wave; score is the base kill value.
+ *  Radii are large on purpose: every kind must read as a body at a glance,
+ *  never as a dot — and no kind shares a silhouette or a colour with the
+ *  player's bolts (white-yellow capsules) or with enemy bullets (magenta
+ *  diamonds). */
 export const ENEMIES = {
-  mote: { radius: 13, speed: 150, hp: 18, score: 10, damage: 8, cost: 1, color: '#ffb347' },
-  wisp: { radius: 12, speed: 215, hp: 14, score: 15, damage: 8, cost: 2, color: '#5eead4' },
-  spitter: { radius: 15, speed: 105, hp: 30, score: 20, damage: 10, cost: 2, color: '#c084fc' },
-  brute: { radius: 24, speed: 72, hp: 110, score: 40, damage: 16, cost: 4, color: '#f87171' },
+  mote: { radius: 17, speed: 150, hp: 18, score: 10, damage: 8, cost: 1, color: '#f97316' },
+  wisp: { radius: 16, speed: 215, hp: 14, score: 15, damage: 8, cost: 2, color: '#5eead4' },
+  spitter: { radius: 19, speed: 105, hp: 30, score: 20, damage: 10, cost: 2, color: '#c084fc' },
+  brute: { radius: 28, speed: 72, hp: 110, score: 40, damage: 16, cost: 4, color: '#f87171' },
 };
 
 /** Elites are bigger, tougher, worth triple and always drop a heart. */
@@ -65,7 +69,7 @@ export const PICKUPS = {
 };
 
 /** How many things can exist at once; the pools are allocated once, at boot. */
-export const POOLS = { enemies: 96, bullets: 320, enemyBullets: 220, particles: 640, texts: 48, pickups: 96 };
+export const POOLS = { enemies: 128, bullets: 320, enemyBullets: 220, particles: 640, texts: 48, pickups: 96 };
 
 /**
  * The upgrade draft: ten upgrades, each with a level cap. Between waves the

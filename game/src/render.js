@@ -61,11 +61,17 @@ export function createRenderer(canvas, fx) {
     ctx.beginPath();
     ctx.arc(FIELD.width / 2, FIELD.height / 2, 300, 0, Math.PI * 2);
     ctx.stroke();
-    // Drifting embers in the dark, purely decorative.
-    for (let i = 0; i < 24; i += 1) {
+    // Drifting embers in the dark, purely decorative — two layers, so the
+    // arena reads as a place even between waves. Deterministic in `time`.
+    for (let i = 0; i < 44; i += 1) {
       const x = ((i * 173 + time * 12) % (FIELD.width + 40)) - 20;
       const y = 40 + ((i * 97) % (FIELD.height - 80)) + Math.sin(time * 0.7 + i) * 8;
-      drawGlow(ctx, x, y, 5, '#ffb347', 0.25);
+      drawGlow(ctx, x, y, 4 + (i % 3) * 2, '#ffb347', 0.2 + (i % 3) * 0.06);
+    }
+    for (let i = 0; i < 10; i += 1) {
+      const x = ((i * 311 + time * 7) % (FIELD.width + 60)) - 30;
+      const y = 60 + ((i * 211) % (FIELD.height - 120)) + Math.cos(time * 0.5 + i * 2) * 10;
+      drawGlow(ctx, x, y, 10, '#ff8c42', 0.1);
     }
   }
 
@@ -123,6 +129,9 @@ export function createRenderer(canvas, fx) {
       ctx.beginPath();
       ctx.arc(0, 0, enemy.radius, 0, Math.PI * 2);
       ctx.fill();
+      ctx.strokeStyle = '#0b0b16';
+      ctx.lineWidth = 4;
+      ctx.stroke();
       ctx.fillStyle = '#1a1a2e';
       ctx.beginPath();
       ctx.arc(0, 0, enemy.radius * 0.62, 0, Math.PI * 2);
@@ -140,32 +149,55 @@ export function createRenderer(canvas, fx) {
       ctx.lineTo(enemy.radius * 1.25, -enemy.radius * 1.25);
       ctx.stroke();
     } else if (enemy.kind === 'mote') {
+      // An eight-point ember star: deep orange, dark core, white-hot heart.
+      // Nothing else in the game is a star, so it can never read as a bolt.
       ctx.rotate(time * 2 + enemy.phase);
       ctx.fillStyle = enemy.color;
-      for (let i = 0; i < 4; i += 1) {
-        ctx.rotate(Math.PI / 2);
+      ctx.beginPath();
+      for (let i = 0; i < 16; i += 1) {
+        const a = (i / 16) * Math.PI * 2;
+        const r = i % 2 === 0 ? enemy.radius : enemy.radius * 0.45;
+        const px = Math.cos(a) * r;
+        const py = Math.sin(a) * r;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#0b0b16';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.fillStyle = '#1a1a2e';
+      ctx.beginPath();
+      ctx.arc(0, 0, enemy.radius * 0.42, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff3c4';
+      ctx.beginPath();
+      ctx.arc(0, 0, enemy.radius * 0.2, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (enemy.kind === 'wisp') {
+      // A teal ghost: round head, wavy trailing tail, two white eyes.
+      const tail = Math.sin(time * 6 + enemy.phase) * 4;
+      ctx.fillStyle = enemy.color;
+      for (let i = 1; i <= 3; i += 1) {
         ctx.beginPath();
-        ctx.moveTo(0, -enemy.radius);
-        ctx.lineTo(4, 0);
-        ctx.lineTo(-4, 0);
-        ctx.closePath();
+        ctx.arc(-i * enemy.radius * 0.55, tail * (i / 3), enemy.radius * (0.7 - i * 0.16), 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.beginPath();
-      ctx.arc(0, 0, enemy.radius * 0.55, 0, Math.PI * 2);
-      ctx.fillStyle = '#fff3c4';
-      ctx.fill();
-    } else if (enemy.kind === 'wisp') {
-      ctx.fillStyle = enemy.color;
-      ctx.beginPath();
       ctx.arc(0, 0, enemy.radius * (1 + wobble), 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.strokeStyle = '#0b0b16';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
       ctx.beginPath();
-      ctx.arc(-4, -3, 3, 0, Math.PI * 2);
-      ctx.arc(4, -3, 3, 0, Math.PI * 2);
+      ctx.arc(-5, -4, 3.5, 0, Math.PI * 2);
+      ctx.arc(5, -4, 3.5, 0, Math.PI * 2);
       ctx.fill();
     } else if (enemy.kind === 'spitter') {
+      // A violet arrowhead: a triangle with a dark maw and three pale dots.
+      ctx.rotate(Math.sin(time * 1.5 + enemy.phase) * 0.15);
       ctx.fillStyle = enemy.color;
       ctx.beginPath();
       ctx.moveTo(0, -enemy.radius);
@@ -173,12 +205,21 @@ export function createRenderer(canvas, fx) {
       ctx.lineTo(-enemy.radius, enemy.radius * 0.8);
       ctx.closePath();
       ctx.fill();
+      ctx.strokeStyle = '#0b0b16';
+      ctx.lineWidth = 3;
+      ctx.stroke();
       ctx.fillStyle = '#1a1a2e';
       ctx.beginPath();
       ctx.arc(0, 2, enemy.radius * 0.4, 0, Math.PI * 2);
       ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.beginPath();
+      ctx.arc(-enemy.radius * 0.45, -enemy.radius * 0.35, 2.5, 0, Math.PI * 2);
+      ctx.arc(enemy.radius * 0.45, -enemy.radius * 0.35, 2.5, 0, Math.PI * 2);
+      ctx.arc(0, -enemy.radius * 0.55, 2.5, 0, Math.PI * 2);
+      ctx.fill();
     } else {
-      // Brute: a heavy hex slab.
+      // Brute: a heavy hex slab with a dark core and rivets.
       ctx.rotate(wobble);
       ctx.fillStyle = enemy.color;
       ctx.beginPath();
@@ -191,10 +232,20 @@ export function createRenderer(canvas, fx) {
       }
       ctx.closePath();
       ctx.fill();
+      ctx.strokeStyle = '#0b0b16';
+      ctx.lineWidth = 3;
+      ctx.stroke();
       ctx.fillStyle = 'rgba(0,0,0,0.35)';
       ctx.beginPath();
       ctx.arc(0, 0, enemy.radius * 0.55, 0, Math.PI * 2);
       ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.55)';
+      for (let i = 0; i < 6; i += 1) {
+        const a = (i / 6) * Math.PI * 2 + Math.PI / 6;
+        ctx.beginPath();
+        ctx.arc(Math.cos(a) * enemy.radius * 0.72, Math.sin(a) * enemy.radius * 0.72, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
     ctx.restore();
     if (enemy.flash > 0) {
@@ -206,11 +257,26 @@ export function createRenderer(canvas, fx) {
       ctx.globalAlpha = 1;
     }
     if (enemy.elite) {
+      // Elites wear a spiked gold crown-ring: gold is theirs alone.
       ctx.strokeStyle = '#facc15';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
-      ctx.arc(enemy.x, enemy.y, enemy.radius + 5, 0, Math.PI * 2);
+      ctx.arc(enemy.x, enemy.y, enemy.radius + 6, 0, Math.PI * 2);
       ctx.stroke();
+      ctx.fillStyle = '#facc15';
+      for (let i = 0; i < 8; i += 1) {
+        const a = (i / 8) * Math.PI * 2 + time * 0.8;
+        const sx = enemy.x + Math.cos(a) * (enemy.radius + 6);
+        const sy = enemy.y + Math.sin(a) * (enemy.radius + 6);
+        const tx = enemy.x + Math.cos(a) * (enemy.radius + 13);
+        const ty = enemy.y + Math.sin(a) * (enemy.radius + 13);
+        ctx.beginPath();
+        ctx.moveTo(sx + Math.cos(a + Math.PI / 2) * 3, sy + Math.sin(a + Math.PI / 2) * 3);
+        ctx.lineTo(tx, ty);
+        ctx.lineTo(sx - Math.cos(a + Math.PI / 2) * 3, sy - Math.sin(a + Math.PI / 2) * 3);
+        ctx.closePath();
+        ctx.fill();
+      }
     }
     if (enemy.hp < enemy.maxHp && !enemy.boss) {
       const w = enemy.radius * 2;
@@ -223,18 +289,33 @@ export function createRenderer(canvas, fx) {
 
   function drawBullets(world) {
     for (const bullet of world.bullets) {
-      drawGlow(ctx, bullet.x, bullet.y, 14, '#ffb347', 0.5);
-      ctx.fillStyle = '#ffd166';
-      ctx.beginPath();
-      ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+      // Player bolts are long white-yellow capsules with a hot core: no enemy
+      // is long, and no enemy is white-yellow, so a bolt reads as a bolt.
+      const angle = Math.atan2(bullet.vy, bullet.vx);
+      drawGlow(ctx, bullet.x, bullet.y, 12, '#fde047', 0.35);
+      ctx.save();
+      ctx.translate(bullet.x, bullet.y);
+      ctx.rotate(angle);
+      ctx.fillStyle = '#fde047';
+      roundRect(ctx, -13, -3.5, 26, 7, 3.5);
       ctx.fill();
+      ctx.fillStyle = '#fffbe6';
+      roundRect(ctx, -9, -2, 18, 4, 2);
+      ctx.fill();
+      ctx.restore();
     }
     for (const bullet of world.enemyBullets) {
-      drawGlow(ctx, bullet.x, bullet.y, 14, '#c084fc', 0.45);
-      ctx.fillStyle = '#e9d5ff';
-      ctx.beginPath();
-      ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
-      ctx.fill();
+      // Enemy fire is a magenta diamond with a pale core: a shape no enemy
+      // and no player bolt uses, in a colour no enemy uses.
+      drawGlow(ctx, bullet.x, bullet.y, 12, '#ec4899', 0.4);
+      ctx.save();
+      ctx.translate(bullet.x, bullet.y);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = '#ec4899';
+      ctx.fillRect(-7, -7, 14, 14);
+      ctx.fillStyle = '#fdf2f8';
+      ctx.fillRect(-3, -3, 6, 6);
+      ctx.restore();
     }
   }
 

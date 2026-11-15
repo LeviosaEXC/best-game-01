@@ -9,8 +9,8 @@ import { SCREEN_DRAFT, SCREEN_OVER, SCREEN_PLAY, SCREEN_TITLE, SCREEN_VICTORY } 
 import { victoryBuild } from './upgrades.js';
 
 const TITLE_HOLD_SECONDS = 5;
-const PLAY_HOLD_SECONDS = 8;
-const PLAY_WAVE = 8;
+const PLAY_HOLD_SECONDS = 12;
+const PLAY_WAVE = 11;
 const DRAFT_WAVE = 3;
 const LIMIT_SECONDS = 1500;
 
@@ -142,7 +142,9 @@ export function stageShot(name, world, fx) {
       continue;
     }
     if (name === 'play') {
-      // Eight seconds into wave 8: mid-combat, the wave at full strength.
+      // Twelve seconds into wave 11: the wave at full strength — a dozen
+      // enemies of all four kinds on screen, bolts in flight, spitters
+      // firing. Measured with the density probe (seed 7): 12 alive.
       if (world.state.wave >= PLAY_WAVE) {
         if (wave5At === null) wave5At = world.state.time;
         if (world.state.time - wave5At >= PLAY_HOLD_SECONDS) {

@@ -23,14 +23,16 @@ export function buildWave(wave, random) {
   if (BOSS_WAVES.includes(wave)) {
     const boss = wave === LAST_WAVE ? 'sovereign' : 'warden';
     queue.push({ kind: boss, elite: false, delay: 1.2, boss: true });
-    const adds = wave === LAST_WAVE ? 10 : 8;
+    const adds = wave === LAST_WAVE ? 13 : 10;
     for (let i = 0; i < adds; i += 1) {
       const kind = i % 3 === 0 ? 'wisp' : 'mote';
-      queue.push({ kind, elite: false, delay: 4 + random() * 4, boss: false });
+      queue.push({ kind, elite: false, delay: 3 + random() * 3, boss: false });
     }
     return queue;
   }
-  let budget = 6 + wave * 4;
+  // +25% spawn budget over the original (8 + wave*5 vs 6 + wave*4): density
+  // is the cheap difficulty lever — enemy HP is NOT raised to compensate.
+  let budget = 8 + wave * 5;
   const kinds = kindsFor(wave);
   const picks = [];
   while (budget > 0) {
@@ -45,9 +47,15 @@ export function buildWave(wave, random) {
     const j = Math.floor(random() * (i + 1));
     [picks[i], picks[j]] = [picks[j], picks[i]];
   }
-  const interval = Math.max(0.55, 1.5 - wave * 0.09);
+  const interval = Math.max(0.5, 1.35 - wave * 0.09);
+  // From wave 5, every third spawn arrives together with the previous one:
+  // the wave lands in small clusters instead of a thin trickle, so several
+  // enemies are on screen at once instead of one at a time. Total count is
+  // unchanged (the budget above); only the pacing is denser.
+  const clusterEvery = wave >= 5 ? 3 : 0;
   picks.forEach((kind, index) => {
-    queue.push({ kind, elite: false, delay: index === 0 ? 0.8 : interval * (0.7 + random() * 0.6), boss: false });
+    const clustered = clusterEvery > 0 && index > 0 && index % clusterEvery === 0;
+    queue.push({ kind, elite: false, delay: index === 0 ? 0.8 : clustered ? 0 : interval * (0.7 + random() * 0.6), boss: false });
   });
   const elites = wave >= 8 ? 2 : wave >= 4 ? 1 : 0;
   for (let i = 0; i < elites; i += 1) {
